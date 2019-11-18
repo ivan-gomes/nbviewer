@@ -290,8 +290,12 @@ class GitHubBlobHandler(GithubClientMixin, RenderingHandler):
     """
     @gen.coroutine
     def get_notebook_data(self, user, repo, ref, path):
-        raw_url = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}".format(
-            user=user, repo=repo, ref=ref, path=quote(path)
+        if os.environ.get('GITHUB_API_URL', '') == '':
+            raw_pattern = u"https://raw.githubusercontent.com/{user}/{repo}/{ref}/{path}"
+        else: #Github Enterprise has a different URL pattern for accessing raw files
+            raw_pattern = u"{github_url}{user}/{repo}/raw/{ref}/{path}"
+        raw_url = raw_pattern.format(
+            user=user, repo=repo, ref=ref, path=quote(path), github_url=self.github_url
         )
         blob_url = u"{github_url}{user}/{repo}/blob/{ref}/{path}".format(
             user=user, repo=repo, ref=ref, path=quote(path), github_url=self.github_url
